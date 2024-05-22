@@ -1,0 +1,8 @@
+---
+- name: Prepare environment
+  hosts: local
+  gather_facts: true
+  become: true
+
+  roles:
+    - role: geerlingguy.java

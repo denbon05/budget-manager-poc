@@ -2,7 +2,18 @@
 
 P2P budget manager.
 
+## Prerequisites
+
+|      pkg       | version |
+| :------------: | :-----: |
+|    Node.js     |  ^18.x  |
+| docker compose |  ^2.x   |
+
 ## Project Setup
+
+```sh
+make setup # setup environment
+```
 
 ```sh
 bun install
