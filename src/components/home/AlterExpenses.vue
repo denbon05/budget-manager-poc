@@ -1,4 +1,14 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { addExpense } from '@/api/expenses';
+
+const createExpense = async () => {
+  try {
+    await addExpense();
+  } catch (err) {
+    console.error(err);
+  }
+};
+</script>
 
 <template>
   <v-dialog max-width="600">
@@ -8,6 +18,7 @@
         id="addExpensesBtn"
         icon="mdi-plus"
         variant="elevated"
+        @click="createExpense()"
       >
       </v-btn>
     </template>

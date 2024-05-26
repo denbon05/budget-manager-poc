@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import { VitePWA } from 'vite-plugin-pwa';
-import mkcert from 'vite-plugin-mkcert';
+// import mkcert from 'vite-plugin-mkcert';
 
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
@@ -14,7 +14,15 @@ export default defineConfig(({ mode }) => {
       vue(),
       VitePWA({
         registerType: 'autoUpdate',
-        strategies: 'generateSW',
+        injectRegister: 'auto',
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.ts',
+        injectManifest: {
+          // injectionPoint: undefined,
+          swSrc: 'src/sw.ts',
+          swDest: 'dist/sw.js',
+        },
         devOptions: {
           enabled: !isProduction,
           /* when using generateSW the PWA plugin will switch to classic */
@@ -29,7 +37,7 @@ export default defineConfig(({ mode }) => {
           // TODO devices icons
         },
       }),
-      mkcert(),
+      // mkcert(),
     ],
     build: {
       rollupOptions: {

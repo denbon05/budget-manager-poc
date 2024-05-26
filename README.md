@@ -8,6 +8,7 @@ P2P budget manager.
 | :------------: | :-----: |
 |    Node.js     |  ^18.x  |
 | docker compose |  ^2.x   |
+| Android Studio |  ^21.x  |
 
 ## Project Setup
 

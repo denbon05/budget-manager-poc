@@ -8,7 +8,7 @@ setup: pre-setup
 # Android
 cap-run-android:
 	ANDROID_SDK_ROOT=$HOME/Android/Sdk \
-	bunx cap run android -l
+	bunx cap run android --livereload-url=https://localhost:3000
 
 cap-open-android:
 	ANDROID_SDK_ROOT=$HOME/Android/Sdk \

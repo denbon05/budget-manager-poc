@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useExpenses } from '@/composables/useExpenses';
+import type { IExpenses } from '@/types';
 import { useDisplay } from 'vuetify';
 import type { VDataTableVirtual } from 'vuetify/components';
 
-const { expenses } = useExpenses();
+// const { expenses } = useExpenses();
 
 const headers: VDataTableVirtual['headers'] = [
   {
@@ -18,6 +19,7 @@ const headers: VDataTableVirtual['headers'] = [
 ];
 
 const { xs } = useDisplay();
+const expenses: IExpenses[] = [];
 </script>
 
 <template>

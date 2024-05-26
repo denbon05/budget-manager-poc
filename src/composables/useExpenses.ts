@@ -9,7 +9,7 @@ const db = new Dexie('expenses') as Tables.Expenses;
 const v = db.version(INDEX_DB_VERSION).stores({
   expenses: '++id,name,budget,wasted,balance',
 });
-console.log('v', v);
+// console.log('v', v);
 
 const expenses = ref<IExpenses[]>([]);
 
