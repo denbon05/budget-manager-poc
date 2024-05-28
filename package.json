@@ -28,13 +28,14 @@
     "@capacitor/keyboard": "^6.0.0",
     "@capacitor/status-bar": "^6.0.0",
     "axios": "^1.7.2",
-    "dexie": "^4.0.4",
+    "dexie": "^4.0.7",
     "lodash": "^4.17.21",
     "peerjs": "^1.5.4",
     "vue": "^3.4.21",
     "vue-i18n": "9",
     "vue-router": "^4.3.0",
-    "vuetify": "^3.6.6"
+    "vuetify": "^3.6.6",
+    "yup": "^1.4.0"
   },
   "devDependencies": {
     "@mdi/font": "^7.4.47",

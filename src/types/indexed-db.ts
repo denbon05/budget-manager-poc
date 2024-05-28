@@ -1,8 +1,8 @@
 import type { Dexie, EntityTable } from 'dexie';
-import type { IExpenses } from '.';
+import type { IExpense } from '.';
 
 export namespace Tables {
   export type Expenses = Dexie & {
-    expenses: EntityTable<IExpenses, 'id'>;
+    expenses: EntityTable<IExpense, 'id'>;
   };
 }

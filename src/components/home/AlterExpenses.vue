@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { addExpense } from '@/api/expenses';
 
+const expense = {
+  name: 'Test',
+  budget: 3000,
+  wasted: 0,
+  balance: 3000,
+};
+
 const createExpense = async () => {
   try {
-    await addExpense();
+    await addExpense(expense);
   } catch (err) {
     console.error(err);
   }

@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import { VitePWA } from 'vite-plugin-pwa';
-// import mkcert from 'vite-plugin-mkcert';
+// import mkcert from 'vite-plugin-mkcert'; // TODO remove?
 
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
@@ -19,7 +19,6 @@ export default defineConfig(({ mode }) => {
         srcDir: 'src',
         filename: 'sw.ts',
         injectManifest: {
-          // injectionPoint: undefined,
           swSrc: 'src/sw.ts',
           swDest: 'dist/sw.js',
         },

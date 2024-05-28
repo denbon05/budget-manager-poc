@@ -6,11 +6,7 @@ import App from './App.vue';
 import { i18n, vuetify } from './plugins/';
 import router from './router';
 
-registerSW({
-  // onRegisteredSW(swScriptUrl, registration) {
-  //   console.log('AAAA', swScriptUrl);
-  // },
-});
+registerSW();
 
 const app = createApp(App).use(router).use(i18n).use(vuetify);
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useExpenses } from '@/composables/useExpenses';
-import type { IExpenses } from '@/types';
+import { fetchExpenses } from '@/api/expenses';
+import type { IExpense } from '@/types';
+import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 import type { VDataTableVirtual } from 'vuetify/components';
 
@@ -19,7 +20,13 @@ const headers: VDataTableVirtual['headers'] = [
 ];
 
 const { xs } = useDisplay();
-const expenses: IExpenses[] = [];
+const expenses = ref<IExpense[]>([]);
+
+fetchExpenses()
+  .then((fetchedExpenses) => {
+    expenses.value = fetchedExpenses;
+  })
+  .catch(console.error);
 </script>
 
 <template>
