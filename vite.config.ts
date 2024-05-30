@@ -1,5 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import { VitePWA } from 'vite-plugin-pwa';
+import removeConsole from 'vite-plugin-remove-console';
 // import mkcert from 'vite-plugin-mkcert'; // TODO remove?
 
 import vue from '@vitejs/plugin-vue';
@@ -36,6 +37,7 @@ export default defineConfig(({ mode }) => {
           // TODO devices icons
         },
       }),
+      removeConsole(),
       // mkcert(),
     ],
     build: {

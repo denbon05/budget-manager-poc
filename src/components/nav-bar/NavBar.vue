@@ -14,7 +14,7 @@ const routerLinkName = computed(() =>
 </script>
 
 <template>
-  <v-app-bar>
+  <v-app-bar class="px-sm-4 px-md-6 px-lg-8 px-xxl-10">
     <!-- <v-app-bar-title>{{ { appBarIcon, routerLinkName } }}</v-app-bar-title> -->
 
     <template v-slot:append>

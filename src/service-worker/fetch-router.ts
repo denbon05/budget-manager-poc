@@ -1,11 +1,12 @@
 import type { Method } from 'axios';
 import { expenses as expensesEndpoint } from '../constants/endpoints';
-import { createExpense, fetchExpenses } from './uri-controllers';
+import { createExpense, fetchExpenses, updateExpense } from './uri-controllers';
 import { prependHTTPMethod } from './utils';
 
 const controllerByURI = new Map([
   [prependHTTPMethod('post', expensesEndpoint), createExpense],
   [prependHTTPMethod('get', expensesEndpoint), fetchExpenses],
+  [prependHTTPMethod('patch', expensesEndpoint), updateExpense],
 ]);
 
 /** Intercept requests to a specific endpoint */
@@ -28,7 +29,15 @@ const mapToURIController = (event: FetchEvent) => {
   }
 
   const uriController = controllerByURI.get(controllerKey);
-  uriController!(event);
+  event.respondWith(
+    uriController!(event).catch((err) => {
+      console.error('WS endpoint controller error', err);
+      return new Response(err.message, {
+        headers: { 'Content-Type': 'application/json' },
+        status: 400, // TODO err.name === 'ConstraintError' ? 400 : 500,
+      });
+    }),
+  );
 };
 
 export default mapToURIController;

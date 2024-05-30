@@ -22,29 +22,6 @@ self.addEventListener('fetch', mapToURIController);
 
 // registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')));
 
-// ------------
-
-// Service Worker implementation
-// const urlsToCache: string[] = [
-//   // '/',
-//   // '/index.html',
-//   // '/styles.css',
-//   // '/main.js',
-//   // '/favicon.ico',
-// ];
-// // console.log('hi from sw!!!!');
-
-// // Install the Service Worker
-// self.addEventListener('install', (event) => {
-//   console.log('Service Worker installing.');
-//   event.waitUntil(
-//     caches.open(SW_CACHE_NAME).then((cache) => {
-//       console.log('Opened cache');
-//       return cache.addAll(urlsToCache);
-//     }),
-//   );
-// });
-
 // Activate the Service Worker
 self.addEventListener('activate', (event) => {
   console.log('Service Worker activating.');
