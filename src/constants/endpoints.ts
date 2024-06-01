@@ -1,8 +1,9 @@
-import { API_VERSION } from '.';
+const API_VERSION = 'v1';
 
 const buildEndpointVersioned = (endpoint: string) =>
-  endpoint.replace(/(?<=api)/, `/${API_VERSION}`);
+  `/api/${API_VERSION}/${endpoint}`;
 
-const expenses = buildEndpointVersioned('/api/expenses');
+const expensesEndpoint = buildEndpointVersioned('expenses');
+const earningsEndpoint = buildEndpointVersioned('earnings');
 
-export { expenses };
+export { earningsEndpoint, expensesEndpoint };

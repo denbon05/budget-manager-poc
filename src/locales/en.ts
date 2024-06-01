@@ -17,6 +17,7 @@ export default {
 
   earnings: {
     name: 'Earnings',
+    cta: 'Add @.lower:earnings.income',
     income: 'Income',
   },
 

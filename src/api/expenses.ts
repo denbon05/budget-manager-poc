@@ -1,8 +1,6 @@
-import { expenses as expensesEndpoint } from '@/constants/endpoints';
+import { expensesEndpoint } from '@/constants/endpoints';
 import type { ExpenseAltered, IExpense } from '@/types';
-import Axios from 'axios';
-
-const axios = Axios.create({ baseURL: new URL(import.meta.url).origin });
+import { axios } from './init';
 
 export const addExpense = async (expense: IExpense) => {
   const { data } = await axios.post<Required<Pick<IExpense, 'id'>>>(

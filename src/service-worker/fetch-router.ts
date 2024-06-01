@@ -1,12 +1,27 @@
 import type { Method } from 'axios';
-import { expenses as expensesEndpoint } from '../constants/endpoints';
-import { createExpense, fetchExpenses, updateExpense } from './uri-controllers';
+import { earningsEndpoint, expensesEndpoint } from '../constants/endpoints';
+import {
+  createExpense,
+  fetchExpenses,
+  updateExpense,
+} from './controllers/expenses';
+import {
+  fetchEarnings,
+  createEarning,
+  updateEarning,
+} from './controllers/earnings';
 import { prependHTTPMethod } from './utils';
 
+/** Handlers designed for specific URIs within Service Worker */
 const controllerByURI = new Map([
+  // expenses
   [prependHTTPMethod('post', expensesEndpoint), createExpense],
   [prependHTTPMethod('get', expensesEndpoint), fetchExpenses],
   [prependHTTPMethod('patch', expensesEndpoint), updateExpense],
+  // earnings
+  [prependHTTPMethod('get', earningsEndpoint), fetchEarnings],
+  [prependHTTPMethod('post', earningsEndpoint), createEarning],
+  [prependHTTPMethod('patch', earningsEndpoint), updateEarning],
 ]);
 
 /** Intercept requests to a specific endpoint */

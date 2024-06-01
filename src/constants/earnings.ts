@@ -1,0 +1,3 @@
+const DEFAULT_EARNING_NAME = '';
+
+export { DEFAULT_EARNING_NAME };

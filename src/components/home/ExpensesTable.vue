@@ -15,10 +15,12 @@ import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import type { VDataTableVirtual } from 'vuetify/components';
-import InputDialog from './InputDialog.vue';
+import NumInputDialog from './NumInputDialog.vue';
+import { useClientState } from '@/composables/useClientState';
 
 const { t } = useI18n();
 
+const { isSideBarVisible: shouldAddBtnBeHidden } = useClientState();
 const { xs } = useDisplay();
 const expenses = ref<IExpense[]>([]);
 const shouldAutofocus = ref(false);
@@ -82,7 +84,6 @@ const update = async (expense: ExpenseAltered) => {
   } catch (err) {
     console.error(`Failed to update the expense ${expense}`, err);
   }
-  // }
 };
 
 const affectedExpense = reactive<IExpense>({
@@ -132,16 +133,20 @@ const saveWasted = (value: number) => {
   affectedExpense.wasted = Number(affectedExpense.wasted) + value;
   return updateDebounced(affectedExpense);
 };
+
+defineExpose({
+  createExpense,
+});
 </script>
 
 <template>
   <v-col>
-    <InputDialog
+    <NumInputDialog
       v-model:isDialogOpened="isInputDialogVisible"
       @update-value="saveWasted"
     >
       <template #title>{{ $t('expense.wasted') }}</template>
-    </InputDialog>
+    </NumInputDialog>
 
     <v-data-table-virtual
       hide-default-footer
@@ -216,27 +221,12 @@ const saveWasted = (value: number) => {
         </v-text-field>
       </template>
     </v-data-table-virtual>
-
-    <v-btn
-      id="addExpenseBtn"
-      icon="mdi-plus"
-      variant="elevated"
-      elevation="3"
-      @click="createExpense"
-    >
-    </v-btn>
   </v-col>
 </template>
 
 <style scoped lang="scss">
-#addExpenseBtn {
-  position: fixed;
-  bottom: 5dvh;
-  right: 5dvw;
-}
-
-::v-deep input::-webkit-outer-spin-button,
-::v-deep input::-webkit-inner-spin-button {
+:deep(input::-webkit-outer-spin-button),
+:deep(input::-webkit-inner-spin-button) {
   -webkit-appearance: none;
   margin: 0;
 }

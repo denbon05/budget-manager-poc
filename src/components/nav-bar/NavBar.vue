@@ -11,11 +11,22 @@ const appBarIcon = computed(() =>
 const routerLinkName = computed(() =>
   route.name === RouteNames.Home ? RouteNames.Profile : RouteNames.Home,
 );
+
+defineEmits<{
+  (event: 'toggleSideBarVisibility'): void;
+}>();
 </script>
 
 <template>
   <v-app-bar class="px-sm-4 px-md-6 px-lg-8 px-xxl-10">
     <!-- <v-app-bar-title>{{ { appBarIcon, routerLinkName } }}</v-app-bar-title> -->
+    <template #prepend>
+      <v-btn
+        @click="$emit('toggleSideBarVisibility')"
+        icon="mdi-hamburger"
+        variant="flat"
+      ></v-btn>
+    </template>
 
     <template v-slot:append>
       <router-link
