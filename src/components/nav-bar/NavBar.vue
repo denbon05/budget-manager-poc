@@ -6,7 +6,7 @@ import { useRoute } from 'vue-router';
 const route = useRoute();
 
 const appBarIcon = computed(() =>
-  route.name === RouteNames.Home ? 'mdi-account' : 'mdi-home',
+  route.name === RouteNames.Home ? 'mdi-account-cog' : 'mdi-home',
 );
 const routerLinkName = computed(() =>
   route.name === RouteNames.Home ? RouteNames.Profile : RouteNames.Home,

@@ -18,6 +18,7 @@ const mapToURIController = (event: FetchEvent) => {
     url.pathname.startsWith('/api') && !controllerByURI.has(controllerKey);
 
   if (shouldURIBeIntercepted && !import.meta.env.PROD) {
+    // show non-intercepted routes while developing
     console.warn(
       `URI doesn't intercepted in SW:\nURI "${url.pathname}"\nMethod "${method}"`,
     );

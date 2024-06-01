@@ -8,31 +8,32 @@ import {
   DEFAULT_OUTCOME,
   DEFAULT_WASTED,
 } from '@/constants';
-import type { IExpense, UpdateExpense } from '@/types';
+import type { ExpenseAltered, IExpense } from '@/types';
 import { retry } from '@lifeomic/attempt';
 import { debounce } from 'lodash';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import type { VDataTableVirtual } from 'vuetify/components';
+import InputDialog from './InputDialog.vue';
 
 const { t } = useI18n();
+
+const { xs } = useDisplay();
+const expenses = ref<IExpense[]>([]);
+const shouldAutofocus = ref(false);
+const isInputDialogVisible = ref(false);
 
 const headers: VDataTableVirtual['headers'] = [
   {
     title: t('expense.outcome'),
-    align: 'start',
-    sortable: false,
+    align: xs ? 'start' : 'end',
     key: 'outcome',
   },
   { title: t('expense.budget'), key: 'budget', align: 'end' },
   { title: t('expense.wasted'), key: 'wasted', align: 'end' },
   { title: t('expense.balance'), key: 'balance', align: 'end' },
 ];
-
-const { xs } = useDisplay();
-const expenses = ref<IExpense[]>([]);
-const shouldAutofocus = ref(false);
 
 const createExpense = async () => {
   const defaultExpense: IExpense = {
@@ -41,7 +42,7 @@ const createExpense = async () => {
     budget: DEFAULT_BUDGET,
     wasted: DEFAULT_WASTED,
   };
-  shouldAutofocus.value = true; // focus only on new items
+  shouldAutofocus.value = true; // focus only on a new item
   try {
     defaultExpense.id = await addExpense(defaultExpense);
     expenses.value.push(defaultExpense);
@@ -69,11 +70,8 @@ const expenseById = computed(() =>
   }, {}),
 );
 
-const update = async <T extends keyof Omit<IExpense, 'id'>>(
-  expense: UpdateExpense<T>,
-) => {
-  if (!expense.id) return;
-
+const update = async (expense: ExpenseAltered) => {
+  // update altered expense
   try {
     await retry(
       async () => {
@@ -84,18 +82,67 @@ const update = async <T extends keyof Omit<IExpense, 'id'>>(
   } catch (err) {
     console.error(`Failed to update the expense ${expense}`, err);
   }
+  // }
+};
 
-  const affectedExpense = expenseById.value[expense.id];
-  if (affectedExpense) {
+const affectedExpense = reactive<IExpense>({
+  outcome: '',
+  balance: 0,
+  budget: 0,
+  wasted: 0,
+});
+
+const updateDebounced = async (expense: ExpenseAltered) => {
+  console.log('updateDebounced!!!');
+  if (!expense.id) return;
+
+  const alteredExpense = expenseById.value[expense.id];
+  if (alteredExpense) {
     // update specific property of the expense
-    affectedExpense[expense.key] = expense.value;
+    Object.assign(alteredExpense, {
+      ...expense,
+      // automatically compute balance
+      balance:
+        (expense.budget ?? alteredExpense.budget ?? 0) -
+        (expense.wasted ?? alteredExpense.wasted ?? 0),
+    });
+  }
+
+  // debounce - take into account user typing
+  return debounce(update, 300)(alteredExpense);
+};
+
+const openInputDialog = ({
+  isFocused,
+  id,
+}: {
+  isFocused: boolean;
+  id?: number;
+}) => {
+  if (!id) return;
+
+  console.log('openInputDialog', { isFocused }, isInputDialogVisible.value);
+  if (!isInputDialogVisible.value) {
+    Object.assign(affectedExpense, expenseById.value[id]);
+    isInputDialogVisible.value = true;
   }
 };
-const updateDebounced = debounce(update, 300);
+
+const saveWasted = (value: number) => {
+  affectedExpense.wasted = Number(affectedExpense.wasted) + value;
+  return updateDebounced(affectedExpense);
+};
 </script>
 
 <template>
   <v-col>
+    <InputDialog
+      v-model:isDialogOpened="isInputDialogVisible"
+      @update-value="saveWasted"
+    >
+      <template #title>{{ $t('expense.wasted') }}</template>
+    </InputDialog>
+
     <v-data-table-virtual
       hide-default-footer
       density="compact"
@@ -103,7 +150,6 @@ const updateDebounced = debounce(update, 300);
       :mobile="xs"
       :headers="headers"
       :items="expenses"
-      :sort-by="[{ key: 'outcome', order: 'asc' }]"
     >
       <template #item.outcome="{ item: { outcome, id } }">
         <v-text-field
@@ -113,9 +159,10 @@ const updateDebounced = debounce(update, 300);
           min-width="200"
           :autofocus="shouldAutofocus"
           hide-details
+          :reverse="xs"
           :model-value="outcome"
           @update:model-value="
-            (value) => updateDebounced({ key: 'outcome', value, id })
+            (value) => updateDebounced({ outcome: value, id })
           "
         >
         </v-text-field>
@@ -131,7 +178,7 @@ const updateDebounced = debounce(update, 300);
           reverse
           :model-value="budget"
           @update:model-value="
-            (value) => updateDebounced({ key: 'budget', value, id })
+            (value) => updateDebounced({ budget: Number(value), id })
           "
         >
         </v-text-field>
@@ -146,14 +193,15 @@ const updateDebounced = debounce(update, 300);
           hide-details
           reverse
           :model-value="wasted"
+          @update:focused="(isFocused) => openInputDialog({ isFocused, id })"
           @update:model-value="
-            (value) => updateDebounced({ key: 'wasted', value, id })
+            (value) => updateDebounced({ wasted: Number(value), id })
           "
         >
         </v-text-field>
       </template>
 
-      <template #item.balance="{ item: { balance, id } }">
+      <template #item.balance="{ item: { balance } }">
         <v-text-field
           type="number"
           :min="0"
@@ -161,11 +209,10 @@ const updateDebounced = debounce(update, 300);
           variant="plain"
           hide-details
           reverse
-          :model-value="balance"
-          @update:model-value="
-            (value) => updateDebounced({ key: 'balance', value, id })
-          "
+          readonly
         >
+          <!-- TODO change balance color depending on user threshold -->
+          <b>{{ balance }}</b>
         </v-text-field>
       </template>
     </v-data-table-virtual>
@@ -186,5 +233,11 @@ const updateDebounced = debounce(update, 300);
   position: fixed;
   bottom: 5dvh;
   right: 5dvw;
+}
+
+::v-deep input::-webkit-outer-spin-button,
+::v-deep input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 </style>

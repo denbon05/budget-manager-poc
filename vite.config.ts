@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
           navigateFallback: 'index.html',
           suppressWarnings: false,
         },
-        includeAssets: ['favicon.ico'],
+        includeAssets: ['favicon.png'],
         manifest: {
           name: 'Budget planner',
           theme_color: '#ffffff',

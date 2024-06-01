@@ -1,19 +1,14 @@
-import {
-  DEFAULT_BALANCE,
-  DEFAULT_BUDGET,
-  DEFAULT_OUTCOME,
-  DEFAULT_WASTED,
-} from '@/constants';
-import type { IExpense } from '@/types';
-import { number, object, string } from 'yup';
+import { DEFAULT_OUTCOME } from '@/constants';
+import z from 'zod';
 
 // '++id,name,budget,wasted,balance'
-const expenseSchema = object<IExpense>({
-  id: number(),
-  name: string().default(DEFAULT_OUTCOME),
-  budget: number().min(0).default(DEFAULT_BUDGET),
-  wasted: number().min(0).default(DEFAULT_WASTED),
-  balance: number().min(0).default(DEFAULT_BALANCE),
+export const NewExpense = z.object({
+  outcome: z.string().default(DEFAULT_OUTCOME),
+  budget: z.number().min(0),
+  wasted: z.number().min(0),
+  balance: z.number(),
 });
 
-export { expenseSchema };
+export const CreatedExpense = NewExpense.extend({
+  id: z.number().readonly(),
+});
