@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useClientState } from '@/composables/useClientState';
 import { RouteNames } from '@/types/router';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+
+const { isSideBarVisible, toggleSideBar } = useClientState();
 
 const route = useRoute();
 
@@ -18,11 +21,11 @@ defineEmits<{
 </script>
 
 <template>
-  <v-app-bar class="px-sm-4 px-md-6 px-lg-8 px-xxl-10">
+  <v-app-bar class="px-4 px-md-6 px-lg-8 px-xxl-10">
     <!-- <v-app-bar-title>{{ { appBarIcon, routerLinkName } }}</v-app-bar-title> -->
     <template #prepend>
       <v-btn
-        @click="$emit('toggleSideBarVisibility')"
+        @click="toggleSideBar(!isSideBarVisible)"
         icon="mdi-hamburger"
         variant="flat"
       ></v-btn>

@@ -21,3 +21,7 @@ export const fetchExpenses = async (): Promise<Required<IExpense[]>> => {
   const { data } = await axios.get<Required<IExpense[]>>(expensesEndpoint);
   return data;
 };
+
+export const deleteExpense = async (parm: Pick<IExpense, 'id'>) => {
+  await axios.delete(expensesEndpoint, { data: parm });
+};

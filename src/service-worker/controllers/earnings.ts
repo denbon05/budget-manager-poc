@@ -19,8 +19,8 @@ export const createEarning = async (event: FetchEvent) => {
 
 export const updateEarning = async (event: FetchEvent) => {
   const earning = await readRequestBody<EarningAltered>(event.request);
-  const isUpdated = await indexedDB.expenses.update(earning.id, earning);
-  console.log('updateEarnings', isUpdated);
+  const isUpdated = await indexedDB.earnings.update(earning.id, earning);
+  if (!isUpdated) console.warn('[SW] earning is not updated', earning);
   return new Response();
 };
 
@@ -32,4 +32,10 @@ export const fetchEarnings = async () => {
   return new Response(JSON.stringify(earnings), {
     headers: defaultHeaders,
   });
+};
+
+export const deleteEarning = async (event: FetchEvent) => {
+  const earning = await readRequestBody<EarningAltered>(event.request);
+  await indexedDB.earnings.delete(earning.id);
+  return new Response();
 };

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { addExpense, fetchExpenses, updateExpense } from '@/api/expenses';
+import { addExpense, deleteExpense, updateExpense } from '@/api/expenses';
+import { useBudget } from '@/composables/useBudget';
+import { useClientState } from '@/composables/useClientState';
 import {
   ATTEMPT_UPDATE_AMOUNT,
   ATTEMPT_UPDATE_FACTOR,
@@ -8,24 +10,25 @@ import {
   DEFAULT_OUTCOME,
   DEFAULT_WASTED,
 } from '@/constants';
+import DelayedQueue from '@/entities/DelayedQueue';
 import type { ExpenseAltered, IExpense } from '@/types';
 import { retry } from '@lifeomic/attempt';
 import { debounce } from 'lodash';
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
-import type { VDataTableVirtual } from 'vuetify/components';
+import { VDataTableVirtual } from 'vuetify/components';
 import NumInputDialog from './NumInputDialog.vue';
-import { useClientState } from '@/composables/useClientState';
 
 const { t } = useI18n();
-
-const { isSideBarVisible: shouldAddBtnBeHidden } = useClientState();
 const { xs } = useDisplay();
-const expenses = ref<IExpense[]>([]);
+const { isSideBarVisible: shouldActionBtnsBeHidden } = useClientState();
+const { expenses } = useBudget();
 const shouldAutofocus = ref(false);
 const isInputDialogVisible = ref(false);
+const isManageModeEnabled = ref(false);
 
+// expenses table headers
 const headers: VDataTableVirtual['headers'] = [
   {
     title: t('expense.outcome'),
@@ -54,12 +57,6 @@ const createExpense = async () => {
   }
 };
 
-fetchExpenses()
-  .then((fetchedExpenses) => {
-    expenses.value = fetchedExpenses;
-  })
-  .catch(console.error);
-
 // cached expenses for O(1) access and modification in place
 const expenseById = computed(() =>
   expenses.value.reduce<Record<string, IExpense>>((acc, expense) => {
@@ -72,17 +69,35 @@ const expenseById = computed(() =>
   }, {}),
 );
 
+// alter item directly without watchers
 const update = async (expense: ExpenseAltered) => {
+  console.log('update expense!!!', expense);
+  if (!expense.id) return;
+
+  const alteredExpense = expenseById.value[expense.id];
+  if (!alteredExpense) {
+    return;
+  }
+
+  // update specific property of the expense
+  Object.assign(alteredExpense, {
+    ...expense,
+    // automatically compute balance
+    balance:
+      (expense.budget ?? alteredExpense.budget ?? 0) -
+      (expense.wasted ?? alteredExpense.wasted ?? 0),
+  });
+
   // update altered expense
   try {
     await retry(
       async () => {
-        await updateExpense(expense);
+        await updateExpense(alteredExpense);
       },
       { maxAttempts: ATTEMPT_UPDATE_AMOUNT, factor: ATTEMPT_UPDATE_FACTOR },
     );
   } catch (err) {
-    console.error(`Failed to update the expense ${expense}`, err);
+    console.error(`Failed to update the expense ${alteredExpense}`, err);
   }
 };
 
@@ -93,40 +108,26 @@ const affectedExpense = reactive<IExpense>({
   wasted: 0,
 });
 
-const updateDebounced = async (expense: ExpenseAltered) => {
-  console.log('updateDebounced!!!');
-  if (!expense.id) return;
+const updateDebounced = debounce(update, 300);
 
-  const alteredExpense = expenseById.value[expense.id];
-  if (alteredExpense) {
-    // update specific property of the expense
-    Object.assign(alteredExpense, {
-      ...expense,
-      // automatically compute balance
-      balance:
-        (expense.budget ?? alteredExpense.budget ?? 0) -
-        (expense.wasted ?? alteredExpense.wasted ?? 0),
-    });
-  }
+const openInputDialog = ({ id }: Pick<IExpense, 'id'>) => {
+  if (!id || isManageModeEnabled.value) return;
 
-  // debounce - take into account user typing
-  return debounce(update, 300)(alteredExpense);
-};
-
-const openInputDialog = ({
-  isFocused,
-  id,
-}: {
-  isFocused: boolean;
-  id?: number;
-}) => {
-  if (!id) return;
-
-  console.log('openInputDialog', { isFocused }, isInputDialogVisible.value);
   if (!isInputDialogVisible.value) {
     Object.assign(affectedExpense, expenseById.value[id]);
     isInputDialogVisible.value = true;
   }
+};
+
+const expanded = ref<string[]>([]);
+
+const toggleManageMode = () => {
+  isManageModeEnabled.value = !isManageModeEnabled.value;
+  // expand all in manage mode
+  // @ts-ignore - actual values are numbers
+  expanded.value = isManageModeEnabled.value
+    ? expenses.value.map(({ id }) => id)
+    : [];
 };
 
 const saveWasted = (value: number) => {
@@ -134,9 +135,13 @@ const saveWasted = (value: number) => {
   return updateDebounced(affectedExpense);
 };
 
-defineExpose({
-  createExpense,
-});
+const removeExpense = (expense: IExpense) => {
+  const id = DelayedQueue.enqueue(() => {
+    expenses.value = expenses.value.filter(({ id }) => id !== expense.id);
+    return deleteExpense(expense);
+  });
+  // TODO dequeue if user clicked undo
+};
 </script>
 
 <template>
@@ -151,17 +156,30 @@ defineExpose({
     <v-data-table-virtual
       hide-default-footer
       density="compact"
-      :no-data-text="$t('home.noExpensesText')"
+      :no-data-text="$t('expense.cta')"
       :mobile="xs"
       :headers="headers"
       :items="expenses"
+      :hover="isManageModeEnabled"
+      :show-expand="isManageModeEnabled"
+      :expand-on-click="isManageModeEnabled"
+      :expanded="expanded"
     >
+      <!-- <template #item.data-table-select="{ item }">
+        <v-btn
+          icon="mdi-minus-circle-outline"
+          variant="plain"
+          size="sm"
+          @click="removeExpense(item)"
+        ></v-btn>
+      </template> -->
+
       <template #item.outcome="{ item: { outcome, id } }">
         <v-text-field
           type="text"
           density="compact"
           variant="plain"
-          min-width="200"
+          min-width="160"
           :autofocus="shouldAutofocus"
           hide-details
           :reverse="xs"
@@ -169,6 +187,7 @@ defineExpose({
           @update:model-value="
             (value) => updateDebounced({ outcome: value, id })
           "
+          :readonly="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -185,6 +204,7 @@ defineExpose({
           @update:model-value="
             (value) => updateDebounced({ budget: Number(value), id })
           "
+          :readonly="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -198,10 +218,11 @@ defineExpose({
           hide-details
           reverse
           :model-value="wasted"
-          @update:focused="(isFocused) => openInputDialog({ isFocused, id })"
+          @update:focused="openInputDialog({ id })"
           @update:model-value="
             (value) => updateDebounced({ wasted: Number(value), id })
           "
+          :readonly="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -220,11 +241,73 @@ defineExpose({
           <b>{{ balance }}</b>
         </v-text-field>
       </template>
+
+      <template v-slot:expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            <div class="d-flex justify-end">
+              <v-btn
+                variant="plain"
+                class="mx-2"
+                size="sm"
+                icon="mdi-minus-circle-outline"
+                @click="removeExpense(item)"
+              ></v-btn>
+              <v-btn
+                variant="plain"
+                class="mx-2"
+                size="sm"
+                icon="mdi-calendar-sync-outline"
+              ></v-btn>
+            </div>
+          </td>
+        </tr>
+      </template>
+
+      <template #item.data-table-expand
+        ><v-icon size="md" icon="mdi-tune-vertical-variant"></v-icon
+      ></template>
     </v-data-table-virtual>
+
+    <div
+      v-if="!shouldActionBtnsBeHidden"
+      id="expensesActions"
+      class="d-flex flex-column"
+    >
+      <v-btn
+        append-icon="mdi-plus"
+        class="my-1 px-2 d-flex justify-space-between"
+        elevation="3"
+        @click="createExpense"
+        color="yellow"
+      >
+        <span class="text-body-2 text-uppercase"> {{ $t('expense.add') }}</span>
+      </v-btn>
+      <v-btn
+        :append-icon="
+          isManageModeEnabled ? 'mdi-cog-stop-outline' : 'mdi-cog-play-outline'
+        "
+        class="my-1 px-2 d-flex justify-space-between"
+        density="comfortable"
+        elevation="3"
+        @click="toggleManageMode"
+        :color="isManageModeEnabled ? 'cyan' : 'blue-grey'"
+      >
+        <span class="text-body-2 text-uppercase">
+          {{ $t('actions.manage') }}</span
+        >
+      </v-btn>
+    </div>
   </v-col>
 </template>
 
 <style scoped lang="scss">
+#expensesActions {
+  position: fixed;
+  bottom: 5dvh;
+  right: 5dvw;
+}
+
 :deep(input::-webkit-outer-spin-button),
 :deep(input::-webkit-inner-spin-button) {
   -webkit-appearance: none;

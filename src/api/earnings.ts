@@ -22,3 +22,7 @@ export const fetchEarnings = async () => {
 
   return data;
 };
+
+export const deleteEarning = async (parm: Pick<EarningAltered, 'id'>) => {
+  await axios.delete(earningsEndpoint, { data: parm });
+};

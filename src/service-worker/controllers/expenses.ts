@@ -20,7 +20,7 @@ export const createExpense = async (event: FetchEvent) => {
 export const updateExpense = async (event: FetchEvent) => {
   const expense = await readRequestBody<ExpenseAltered>(event.request);
   const isUpdated = await indexedDB.expenses.update(expense.id, expense);
-  console.log('updateExpense', isUpdated);
+  if (!isUpdated) console.warn('[SW] expense is not updated', expense);
   return new Response();
 };
 
@@ -32,4 +32,10 @@ export const fetchExpenses = async () => {
   return new Response(JSON.stringify(expenses), {
     headers: defaultHeaders,
   });
+};
+
+export const deleteExpense = async (event: FetchEvent) => {
+  const expense = await readRequestBody<ExpenseAltered>(event.request);
+  await indexedDB.expenses.delete(expense.id);
+  return new Response();
 };

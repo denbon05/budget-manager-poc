@@ -9,7 +9,6 @@ const router = createRouter({
       path: '/',
       name: RouteNames.Home,
       component: HomeView,
-      props: true,
     },
     {
       path: '/profile',

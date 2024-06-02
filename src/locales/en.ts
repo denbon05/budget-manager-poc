@@ -3,13 +3,14 @@ export default {
 
   home: {
     title: 'Home',
-    noExpensesText: 'Start planning your budget by adding your expenses',
   },
 
   expense: {
-    name: 'Expense',
+    cta: 'Start planning your budget by adding your expenses',
+    name: 'Expense | Expenses',
     new: 'New @.lower:expense.name',
-    outcome: 'Outcome',
+    outcome: 'Outcome | Outcomes',
+    add: 'Add @.lower:expense.outcome',
     budget: 'Budget',
     wasted: 'Wasted',
     balance: 'Balance',
@@ -19,6 +20,11 @@ export default {
     name: 'Earnings',
     cta: 'Add @.lower:earnings.income',
     income: 'Income',
+  },
+
+  actions: {
+    manage: 'Manage',
+    remove: 'Remove',
   },
 
   errors: {

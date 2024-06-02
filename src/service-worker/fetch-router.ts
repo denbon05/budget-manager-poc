@@ -2,6 +2,7 @@ import type { Method } from 'axios';
 import { earningsEndpoint, expensesEndpoint } from '../constants/endpoints';
 import {
   createExpense,
+  deleteExpense,
   fetchExpenses,
   updateExpense,
 } from './controllers/expenses';
@@ -9,6 +10,7 @@ import {
   fetchEarnings,
   createEarning,
   updateEarning,
+  deleteEarning,
 } from './controllers/earnings';
 import { prependHTTPMethod } from './utils';
 
@@ -18,10 +20,12 @@ const controllerByURI = new Map([
   [prependHTTPMethod('post', expensesEndpoint), createExpense],
   [prependHTTPMethod('get', expensesEndpoint), fetchExpenses],
   [prependHTTPMethod('patch', expensesEndpoint), updateExpense],
+  [prependHTTPMethod('delete', expensesEndpoint), deleteExpense],
   // earnings
   [prependHTTPMethod('get', earningsEndpoint), fetchEarnings],
   [prependHTTPMethod('post', earningsEndpoint), createEarning],
   [prependHTTPMethod('patch', earningsEndpoint), updateEarning],
+  [prependHTTPMethod('delete', earningsEndpoint), deleteEarning],
 ]);
 
 /** Intercept requests to a specific endpoint */

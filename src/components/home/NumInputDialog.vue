@@ -18,6 +18,7 @@ const onChangeDialogOpened = (isOpened: boolean) => {
 
 const save = () => {
   if (!additionalValue.value) {
+    onChangeDialogOpened(false); // close dialog
     return; // no need to handle
   }
 
