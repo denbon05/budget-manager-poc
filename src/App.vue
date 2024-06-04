@@ -10,9 +10,7 @@ import SideBar from '@/components/side-bar/SideBar.vue';
     <SideBar />
 
     <v-main>
-      <v-container>
-        <RouterView />
-      </v-container>
+      <RouterView />
     </v-main>
   </v-layout>
 </template>

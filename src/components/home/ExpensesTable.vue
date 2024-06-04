@@ -162,7 +162,6 @@ const removeExpense = (expense: IExpense) => {
       :items="expenses"
       :hover="isManageModeEnabled"
       :show-expand="isManageModeEnabled"
-      :expand-on-click="isManageModeEnabled"
       :expanded="expanded"
     >
       <!-- <template #item.data-table-select="{ item }">
@@ -187,7 +186,7 @@ const removeExpense = (expense: IExpense) => {
           @update:model-value="
             (value) => updateDebounced({ outcome: value, id })
           "
-          :readonly="isManageModeEnabled"
+          :disabled="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -204,7 +203,7 @@ const removeExpense = (expense: IExpense) => {
           @update:model-value="
             (value) => updateDebounced({ budget: Number(value), id })
           "
-          :readonly="isManageModeEnabled"
+          :disabled="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -222,7 +221,7 @@ const removeExpense = (expense: IExpense) => {
           @update:model-value="
             (value) => updateDebounced({ wasted: Number(value), id })
           "
-          :readonly="isManageModeEnabled"
+          :disabled="isManageModeEnabled"
         >
         </v-text-field>
       </template>
@@ -236,21 +235,32 @@ const removeExpense = (expense: IExpense) => {
           hide-details
           reverse
           readonly
+          :disabled="isManageModeEnabled"
         >
           <!-- TODO change balance color depending on user threshold -->
           <b>{{ balance }}</b>
         </v-text-field>
       </template>
 
+      <template #item.data-table-expand>
+        <v-icon
+          size="md"
+          icon="mdi-tune-vertical-variant"
+          :disabled="isManageModeEnabled"
+        ></v-icon>
+      </template>
+
       <template v-slot:expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <div class="d-flex justify-end">
+            <div class="d-flex">
               <v-btn
                 variant="plain"
                 class="mx-2"
                 size="sm"
                 icon="mdi-minus-circle-outline"
+                v-tooltip:bottom="$t('actions.remove')"
+                color="error"
                 @click="removeExpense(item)"
               ></v-btn>
               <v-btn
@@ -263,10 +273,6 @@ const removeExpense = (expense: IExpense) => {
           </td>
         </tr>
       </template>
-
-      <template #item.data-table-expand
-        ><v-icon size="md" icon="mdi-tune-vertical-variant"></v-icon
-      ></template>
     </v-data-table-virtual>
 
     <div
@@ -284,9 +290,7 @@ const removeExpense = (expense: IExpense) => {
         <span class="text-body-2 text-uppercase"> {{ $t('expense.add') }}</span>
       </v-btn>
       <v-btn
-        :append-icon="
-          isManageModeEnabled ? 'mdi-cog-stop-outline' : 'mdi-cog-play-outline'
-        "
+        append-icon="mdi-tune-vertical"
         class="my-1 px-2 d-flex justify-space-between"
         density="comfortable"
         elevation="3"
@@ -294,7 +298,7 @@ const removeExpense = (expense: IExpense) => {
         :color="isManageModeEnabled ? 'cyan' : 'blue-grey'"
       >
         <span class="text-body-2 text-uppercase">
-          {{ $t('actions.manage') }}</span
+          {{ $t('actions.tune') }}</span
         >
       </v-btn>
     </div>

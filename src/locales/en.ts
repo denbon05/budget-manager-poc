@@ -1,5 +1,5 @@
 export default {
-  profile: { title: 'Profile' },
+  profile: { title: 'Profile', preferences: { title: 'Preferences' } },
 
   home: {
     title: 'Home',
@@ -24,7 +24,15 @@ export default {
 
   actions: {
     manage: 'Manage',
+    tune: 'Tune',
     remove: 'Remove',
+    // on: 'On',
+    // off: 'Off',
+    // recurring: {
+    //   title: 'Recurring',
+    //   on: '@:actions.recurring.title @:actions.on',
+    //   off: '@:actions.recurring.title @:actions.off',
+    // },
   },
 
   errors: {

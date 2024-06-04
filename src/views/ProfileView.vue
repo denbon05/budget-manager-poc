@@ -1,5 +1,9 @@
+<script setup lang="ts"></script>
+
 <template>
-  <div>
-    <h1>This is a profile page</h1>
-  </div>
+  <v-container>
+    <v-row>
+      <v-col>This is a profile page</v-col>
+    </v-row>
+  </v-container>
 </template>

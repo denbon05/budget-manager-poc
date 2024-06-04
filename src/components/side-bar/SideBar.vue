@@ -122,7 +122,7 @@ watch(isSideBarVisible, async (isVisible) => {
         color="orange"
       >
         <span class="text-body-2 text-uppercase">
-          {{ $t('actions.manage') }}</span
+          {{ $t('actions.tune') }}</span
         >
       </v-btn>
     </div>

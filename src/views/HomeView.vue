@@ -3,11 +3,12 @@ import ExpensesTable from '@/components/home/ExpensesTable.vue';
 </script>
 
 <template>
-  <v-row justify="center">
-    <v-col>
-      <ExpensesTable />
-    </v-col>
-  </v-row>
+  <v-container>
+    <v-row justify="center">
+      <v-col>
+        <ExpensesTable />
+      </v-col> </v-row
+  ></v-container>
 </template>
 
 <style lang="scss" scoped></style>
