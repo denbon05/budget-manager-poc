@@ -7,12 +7,13 @@ on:
 
 jobs:
   ci:
-    uses: denbon05/dtl/.github/workflows/ci.yml@main
+    uses: denbon05/budget-manager/.github/workflows/ci.yaml@main
 
   stage-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
 
       - name: Install Vercel CLI
         run: bun i --global vercel@canary

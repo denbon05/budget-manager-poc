@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        bun: [1]
+        bun: [1.1.8]
 
     steps:
       - name: Checkout 🛎
@@ -24,7 +24,6 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: ${{ matrix.bun }}
-          check-latest: true
 
       - name: Install dependencies 👨🏻‍💻
         run: bun i
