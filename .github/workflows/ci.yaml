@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  workflow_call:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-checks:
+    timeout-minutes: 60
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        bun: [1]
+
+    steps:
+      - name: Checkout 🛎
+        uses: actions/checkout@v4
+
+      - name: Setup bun env 🏗
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: ${{ matrix.bun }}
+          check-latest: true
+
+      - name: Install dependencies 👨🏻‍💻
+        run: bun i
+
+      - name: Build app
+        run: npm run build
+
+      - name: Run linter 👀
+        run: npm run lint
+# TODO configure
+# ? https://github.com/intlify/vue-i18n-next/issues/350
+# - name: Run unit tests
+#   run: npm run test:unit
+
+# - name: Run E2E tests
+#   run: npm run test:e2e
+
+# - uses: actions/upload-artifact@v3
+#   if: always()
+#   with:
+#     name: playwright-report
+#     path: playwright-report/
+#     retention-days: 30

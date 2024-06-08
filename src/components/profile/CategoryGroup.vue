@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import type { CategoryGroupItem } from '@/types/profile-settings';
-import { ref } from 'vue';
 
-const { name, items } = defineProps<{
+const { name } = defineProps<{
   name: string;
   items: CategoryGroupItem[];
 }>();
