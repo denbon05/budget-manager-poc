@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => {
           swSrc: 'src/sw.ts',
           swDest: 'dist/sw.js',
         },
+        workbox: {
+          cleanupOutdatedCaches: true,
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue,txt,woff2}'],
+        },
         devOptions: {
           enabled: !isProduction,
           /* when using generateSW the PWA plugin will switch to classic */
@@ -33,8 +37,32 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['favicon.png'],
         manifest: {
           name: 'Budget planner',
+          short_name: 'Budget',
+          display: 'standalone',
           theme_color: '#ffffff',
-          // TODO devices icons
+          description: 'Budget manager app',
+          icons: [
+            {
+              src: 'icons/gold-coin-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: 'icons/gold-coin-256x256.png',
+              sizes: '256x256',
+              type: 'image/png',
+            },
+            {
+              src: 'icons/gold-coin-384x384.png',
+              sizes: '384x384',
+              type: 'image/png',
+            },
+            {
+              src: 'icons/gold-coin-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+          ],
         },
       }),
       removeConsole(),

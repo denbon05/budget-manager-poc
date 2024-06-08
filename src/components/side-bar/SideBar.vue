@@ -113,6 +113,9 @@ watch(isSideBarVisible, async (isVisible) => {
   >
     <v-list-item :subtitle="$t('earnings.name')"></v-list-item>
     <v-divider></v-divider>
+    <p class="d-flex justify-center mt-3" v-if="!earnings.length">
+      {{ $t('earnings.empty') }}
+    </p>
     <v-list density="compact" slim tile>
       <v-list-item
         v-for="(earning, index) of earnings"
@@ -175,7 +178,7 @@ watch(isSideBarVisible, async (isVisible) => {
         elevation="3"
         color="green"
       >
-        {{ $t('earnings.cta') }}
+        {{ $t('earnings.add') }}
       </v-btn>
       <v-btn
         append-icon="mdi-tune-vertical"

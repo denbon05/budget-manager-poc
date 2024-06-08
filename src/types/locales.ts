@@ -1,3 +1,6 @@
-import type { en } from '@/locales';
+import type en from '@/locales/en.json';
 
-export type AppLocale = typeof en;
+// Type-define 'en' as the master schema for the resource
+export type MsgSchema = typeof en;
+
+export type AppLocale = 'en';

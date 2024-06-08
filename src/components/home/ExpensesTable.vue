@@ -23,12 +23,17 @@ import { VDataTableVirtual } from 'vuetify/components';
 import NumInputDialog from './NumInputDialog.vue';
 
 const { t } = useI18n();
-const { xs } = useDisplay();
+const { xs, smAndUp } = useDisplay();
 const { isSideBarVisible: shouldActionBtnsBeHidden } = useClientState();
 const { expenses } = useBudget();
 const shouldAutofocus = ref(false);
 const isInputDialogVisible = ref(false);
 const isManageModeEnabled = ref(false);
+const shouldTHeadBeVisible = computed(() =>
+  // disables sort for mobile
+  Boolean(expenses.value.length && smAndUp.value),
+);
+
 const showSnackbar = inject<(opts: SnackNotificationOpts) => void>(
   'showSnackbar',
   () => null,
@@ -199,6 +204,8 @@ onUnmounted(() => {
       :items="expenses"
       :hover="isManageModeEnabled"
       :show-expand="isManageModeEnabled"
+      :hide-default-header="!shouldTHeadBeVisible"
+      fixed-header
     >
       <template #item.outcome="{ item: { outcome, id } }">
         <v-text-field
@@ -312,7 +319,7 @@ onUnmounted(() => {
         elevation="3"
         @click="toggleManageMode"
         :color="isManageModeEnabled ? 'cyan' : 'blue-grey'"
-        :variant="isManageModeEnabled ? 'elevated' : 'tonal'"
+        variant="elevated"
       >
         <span class="text-body-2 text-uppercase">
           {{ $t('actions.manage') }}</span
@@ -337,5 +344,11 @@ onUnmounted(() => {
 :deep(input::-webkit-inner-spin-button) {
   -webkit-appearance: none;
   margin: 0;
+}
+</style>
+
+<style lang="scss">
+table {
+  overflow-y: clip; // remove double scroll
 }
 </style>
