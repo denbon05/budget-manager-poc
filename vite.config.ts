@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
           suppressWarnings: false,
         },
         includeAssets: ['favicon.png'],
+        useCredentials: true,
         manifest: {
           name: 'Budget planner',
           short_name: 'Budget',
@@ -69,6 +70,7 @@ export default defineConfig(({ mode }) => {
       // mkcert(),
     ],
     build: {
+      manifest: true, // TODO check -> remove if unnecessary
       rollupOptions: {
         output: {
           manualChunks: (id) => {
