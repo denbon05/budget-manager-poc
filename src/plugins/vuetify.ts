@@ -16,9 +16,10 @@ const light: ThemeDefinition = {
     'secondary-darken-1': '#4a078c',
     surface: '#FFFFFF',
     error: '#B00020',
-    danger: '#820018',
-    info: '#2196F3',
+    danger: '#E53935',
+    warn: '#FFD600',
     success: '#4CAF50',
+    info: '#2196F3',
     warning: '#FB8C00',
     disabled: '#87828C', // grey-brown
   },
@@ -35,8 +36,9 @@ const dark: ThemeDefinition = {
     surface: '#FFFFFF',
     error: '#B00020',
     danger: '#820018',
+    warn: '#FBC02D',
+    success: '#8BC34A',
     info: '#2196F3',
-    success: '#4CAF50',
     warning: '#FB8C00',
     disabled: '#56515c', // grey-dark-brown-purple
   },

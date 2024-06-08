@@ -5,6 +5,7 @@ import { useClientState } from '@/composables/useClientState';
 import {
   ATTEMPT_UPDATE_AMOUNT,
   ATTEMPT_UPDATE_FACTOR,
+  DEBOUNCE_MS,
   DEFAULT_BALANCE,
   DEFAULT_BUDGET,
   DEFAULT_OUTCOME,
@@ -12,9 +13,10 @@ import {
 } from '@/constants';
 import DelayedQueue from '@/entities/DelayedQueue';
 import type { ExpenseAltered, IExpense } from '@/types';
+import type { SnackNotificationOpts } from '@/types/notifications';
 import { retry } from '@lifeomic/attempt';
 import { debounce } from 'lodash';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import { VDataTableVirtual } from 'vuetify/components';
@@ -27,6 +29,10 @@ const { expenses } = useBudget();
 const shouldAutofocus = ref(false);
 const isInputDialogVisible = ref(false);
 const isManageModeEnabled = ref(false);
+const showSnackbar = inject<(opts: SnackNotificationOpts) => void>(
+  'showSnackbar',
+  () => null,
+);
 
 // expenses table headers
 const headers: VDataTableVirtual['headers'] = [
@@ -41,6 +47,10 @@ const headers: VDataTableVirtual['headers'] = [
 ];
 
 const createExpense = async () => {
+  if (isManageModeEnabled.value) {
+    // exit from manage mode first if enabled
+    isManageModeEnabled.value = false;
+  }
   const defaultExpense: IExpense = {
     outcome: DEFAULT_OUTCOME,
     balance: DEFAULT_BALANCE,
@@ -51,7 +61,6 @@ const createExpense = async () => {
   try {
     defaultExpense.id = await addExpense(defaultExpense);
     expenses.value.push(defaultExpense);
-    console.log('created expenses', expenses.value);
   } catch (err) {
     console.error('createExpense failed', err);
   }
@@ -108,7 +117,7 @@ const affectedExpense = reactive<IExpense>({
   wasted: 0,
 });
 
-const updateDebounced = debounce(update, 300);
+const updateDebounced = debounce(update, DEBOUNCE_MS);
 
 const openInputDialog = ({ id }: Pick<IExpense, 'id'>) => {
   if (!id || isManageModeEnabled.value) return;
@@ -119,15 +128,8 @@ const openInputDialog = ({ id }: Pick<IExpense, 'id'>) => {
   }
 };
 
-const expanded = ref<string[]>([]);
-
 const toggleManageMode = () => {
   isManageModeEnabled.value = !isManageModeEnabled.value;
-  // expand all in manage mode
-  // @ts-ignore - actual values are numbers
-  expanded.value = isManageModeEnabled.value
-    ? expenses.value.map(({ id }) => id)
-    : [];
 };
 
 const saveWasted = (value: number) => {
@@ -135,17 +137,52 @@ const saveWasted = (value: number) => {
   return updateDebounced(affectedExpense);
 };
 
-const removeExpense = (expense: IExpense) => {
-  const id = DelayedQueue.enqueue(() => {
+// index allows to keep track on the deleted item position in the table
+const removeExpense = ({
+  item: expense,
+  index,
+}: {
+  item: IExpense;
+  index: number;
+}) => {
+  expenses.value.splice(index, 1);
+  DelayedQueue.enqueue(() => {
+    // fire delete request in callback
     expenses.value = expenses.value.filter(({ id }) => id !== expense.id);
     return deleteExpense(expense);
   });
-  // TODO dequeue if user clicked undo
+
+  showSnackbar({
+    text: t('notifications.deleted', { item: t('expense.name') }),
+    closeText: t('actions.undo'),
+    onCloseAction: () => {
+      // dequeue if user clicked undo
+      DelayedQueue.dequeueLast();
+      // restore item in the same place
+      expenses.value.splice(index, 0, expense);
+    },
+  });
 };
+
+const handelTableContainerEnter = ({ key }: KeyboardEvent) => {
+  if (key === 'Enter') {
+    document.getElementById('addExpenseBtn')?.focus();
+  }
+};
+
+onMounted(() => {
+  document
+    .getElementById('expensesTableContainer')
+    ?.addEventListener('keydown', handelTableContainerEnter);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handelTableContainerEnter);
+});
 </script>
 
 <template>
-  <v-col>
+  <v-col id="expensesTableContainer">
     <NumInputDialog
       v-model:isDialogOpened="isInputDialogVisible"
       @update-value="saveWasted"
@@ -162,23 +199,13 @@ const removeExpense = (expense: IExpense) => {
       :items="expenses"
       :hover="isManageModeEnabled"
       :show-expand="isManageModeEnabled"
-      :expanded="expanded"
     >
-      <!-- <template #item.data-table-select="{ item }">
-        <v-btn
-          icon="mdi-minus-circle-outline"
-          variant="plain"
-          size="sm"
-          @click="removeExpense(item)"
-        ></v-btn>
-      </template> -->
-
       <template #item.outcome="{ item: { outcome, id } }">
         <v-text-field
           type="text"
           density="compact"
           variant="plain"
-          min-width="160"
+          min-width="100"
           :autofocus="shouldAutofocus"
           hide-details
           :reverse="xs"
@@ -242,36 +269,24 @@ const removeExpense = (expense: IExpense) => {
         </v-text-field>
       </template>
 
-      <template #item.data-table-expand>
-        <v-icon
-          size="md"
-          icon="mdi-tune-vertical-variant"
-          :disabled="isManageModeEnabled"
-        ></v-icon>
-      </template>
-
-      <template v-slot:expanded-row="{ columns, item }">
-        <tr>
-          <td :colspan="columns.length">
-            <div class="d-flex">
-              <v-btn
-                variant="plain"
-                class="mx-2"
-                size="sm"
-                icon="mdi-minus-circle-outline"
-                v-tooltip:bottom="$t('actions.remove')"
-                color="error"
-                @click="removeExpense(item)"
-              ></v-btn>
-              <v-btn
-                variant="plain"
-                class="mx-2"
-                size="sm"
-                icon="mdi-calendar-sync-outline"
-              ></v-btn>
-            </div>
-          </td>
-        </tr>
+      <template #item.data-table-expand="{ index, item }">
+        <div class="d-flex align-center item-actions">
+          <v-btn
+            variant="plain"
+            class="mx-1"
+            icon="mdi-minus-circle-outline"
+            v-tooltip:bottom="$t('actions.remove')"
+            color="error"
+            density="compact"
+            @click="removeExpense({ item, index })"
+          ></v-btn>
+          <v-btn
+            variant="plain"
+            class="mx-1"
+            density="compact"
+            icon="mdi-calendar-sync-outline"
+          ></v-btn>
+        </div>
       </template>
     </v-data-table-virtual>
 
@@ -286,6 +301,7 @@ const removeExpense = (expense: IExpense) => {
         elevation="3"
         @click="createExpense"
         color="yellow"
+        id="addExpenseBtn"
       >
         <span class="text-body-2 text-uppercase"> {{ $t('expense.add') }}</span>
       </v-btn>
@@ -296,9 +312,10 @@ const removeExpense = (expense: IExpense) => {
         elevation="3"
         @click="toggleManageMode"
         :color="isManageModeEnabled ? 'cyan' : 'blue-grey'"
+        :variant="isManageModeEnabled ? 'elevated' : 'tonal'"
       >
         <span class="text-body-2 text-uppercase">
-          {{ $t('actions.tune') }}</span
+          {{ $t('actions.manage') }}</span
         >
       </v-btn>
     </div>
@@ -310,6 +327,10 @@ const removeExpense = (expense: IExpense) => {
   position: fixed;
   bottom: 5dvh;
   right: 5dvw;
+}
+
+.item-actions {
+  min-width: fit-content;
 }
 
 :deep(input::-webkit-outer-spin-button),

@@ -26,7 +26,7 @@ defineEmits<{
     <template #prepend>
       <v-btn
         @click="toggleSideBar(!isSideBarVisible)"
-        icon="mdi-hamburger"
+        icon="mdi-plus-circle-multiple"
         variant="flat"
       ></v-btn>
     </template>
@@ -36,7 +36,7 @@ defineEmits<{
         :to="{
           name: routerLinkName,
         }"
-        class="text-teal-darken-1"
+        class="text-secondary"
       >
         <v-app-bar-nav-icon
           :icon="appBarIcon"

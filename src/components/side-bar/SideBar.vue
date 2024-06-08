@@ -1,20 +1,35 @@
 <script setup lang="ts">
-import { addEarning, updateEarning } from '@/api/earnings';
+import { addEarning, deleteEarning, updateEarning } from '@/api/earnings';
 import { useBudget } from '@/composables/useBudget';
 import { useClientState } from '@/composables/useClientState';
+import { DEBOUNCE_MS } from '@/constants';
+import DelayedQueue from '@/entities/DelayedQueue';
 import type { IEarning } from '@/types';
+import type { SnackNotificationOpts } from '@/types/notifications';
 import { debounce } from 'lodash';
-import { computed, ref, watch } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 
 const { mdAndUp, smAndUp } = useDisplay();
+const { t } = useI18n();
+const showSnackbar = inject<(opts: SnackNotificationOpts) => void>(
+  'showSnackbar',
+  () => null,
+);
 
 const { isSideBarVisible, toggleSideBar } = useClientState();
 
 const { earnings } = useBudget();
 const isAutofocusEnabled = ref(false);
+const isManageModeEnabled = ref(false);
 
 const createEarning = async () => {
+  if (isManageModeEnabled.value) {
+    // first exit from manage mode if enabled
+    isManageModeEnabled.value = false;
+  }
+
   const earning = { amount: 0, income: '' };
   isAutofocusEnabled.value = true; // focus text field on a new item
   try {
@@ -36,10 +51,36 @@ const alterEarning = async (earning: IEarning) => {
     console.error('updateEarning err', err);
   }
 };
-const debounceAlterEarning = debounce(alterEarning, 300); // give space for typing
+const debounceAlterEarning = debounce(alterEarning, DEBOUNCE_MS); // give space for typing
 
-const toggleRemoveMode = () => {
-  //
+const removeEarning = async ({
+  earning,
+  index,
+}: {
+  earning: IEarning;
+  index: number;
+}) => {
+  earnings.value.splice(index, 1);
+  DelayedQueue.enqueue(() => {
+    // fire delete request in callback
+    earnings.value = earnings.value.filter(({ id }) => id !== earning.id);
+    return deleteEarning(earning);
+  });
+
+  showSnackbar({
+    text: t('notifications.deleted', { item: t('expense.name') }),
+    closeText: t('actions.undo'),
+    onCloseAction: () => {
+      // dequeue if user clicked undo
+      DelayedQueue.dequeueLast();
+      // restore item in the same place
+      earnings.value.splice(index, 0, earning);
+    },
+  });
+};
+
+const toggleManageMode = () => {
+  isManageModeEnabled.value = !isManageModeEnabled.value;
 };
 
 const sideBarWidth = computed(() => {
@@ -66,13 +107,15 @@ watch(isSideBarVisible, async (isVisible) => {
   <v-navigation-drawer
     v-model="isSideBarVisible"
     :width="sideBarWidth"
+    floating
+    touchless
     @keydown.esc="isSideBarVisible = false"
   >
     <v-list-item :subtitle="$t('earnings.name')"></v-list-item>
     <v-divider></v-divider>
     <v-list density="compact" slim tile>
       <v-list-item
-        v-for="earning of earnings"
+        v-for="(earning, index) of earnings"
         :key="`earning-${earning.id}`"
         density="compact"
         slim
@@ -89,8 +132,10 @@ watch(isSideBarVisible, async (isVisible) => {
             :placeholder="$t('earnings.income')"
             v-model:model-value="earning.income"
             @update:model-value="debounceAlterEarning(earning)"
+            :disabled="isManageModeEnabled"
           ></v-text-field>
           <v-text-field
+            v-if="!isManageModeEnabled"
             hide-details
             hide-spin-buttons
             type="number"
@@ -98,7 +143,26 @@ watch(isSideBarVisible, async (isVisible) => {
             density="compact"
             v-model:model-value="earning.amount"
             @update:model-value="debounceAlterEarning(earning)"
+            :disabled="isManageModeEnabled"
           ></v-text-field>
+
+          <div v-else class="d-flex align-center item-actions">
+            <v-btn
+              variant="plain"
+              class="mx-2"
+              density="compact"
+              icon="mdi-minus-circle-outline"
+              v-tooltip:bottom="$t('actions.remove')"
+              color="error"
+              @click="removeEarning({ index, earning })"
+            ></v-btn>
+            <v-btn
+              variant="plain"
+              class="mx-2"
+              density="compact"
+              icon="mdi-calendar-sync-outline"
+            ></v-btn>
+          </div>
         </div>
       </v-list-item>
     </v-list>
@@ -107,22 +171,23 @@ watch(isSideBarVisible, async (isVisible) => {
       <v-btn
         @click="createEarning"
         append-icon="mdi-plus"
+        class="my-1 px-2 d-flex justify-space-between"
         elevation="3"
-        class="my-1"
         color="green"
       >
         {{ $t('earnings.cta') }}
       </v-btn>
       <v-btn
-        append-icon="mdi-minus-circle-multiple-outline"
-        class="my-1 px-2"
+        append-icon="mdi-tune-vertical"
+        class="my-1 px-2 d-flex justify-space-between"
         density="comfortable"
         elevation="3"
-        @click="toggleRemoveMode"
-        color="orange"
+        @click="toggleManageMode"
+        :color="isManageModeEnabled ? 'cyan' : 'blue-grey'"
+        :variant="isManageModeEnabled ? 'elevated' : 'tonal'"
       >
         <span class="text-body-2 text-uppercase">
-          {{ $t('actions.tune') }}</span
+          {{ $t('actions.manage') }}</span
         >
       </v-btn>
     </div>
@@ -135,6 +200,10 @@ watch(isSideBarVisible, async (isVisible) => {
   bottom: 5dvh;
   right: 5dvw;
   z-index: 100000 !important;
+}
+
+.item-actions {
+  height: 40px; // have to be the same as an input height
 }
 
 :deep(input::-webkit-outer-spin-button),

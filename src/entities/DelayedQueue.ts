@@ -1,8 +1,10 @@
-const DEFAULT_DELAY = 4;
+import { UNDO_DELAY_IN_SECONDS } from '@/constants';
+import { uniqueId } from 'lodash';
 
 export interface IQueueItem {
   fn: () => void | Promise<void>;
   timeoutId: NodeJS.Timeout;
+  id: string;
 }
 
 export type EnqueueOpts = {
@@ -14,35 +16,38 @@ class DelayedQueue {
 
   enqueue = (
     fn: IQueueItem['fn'],
-    { delayInSeconds = DEFAULT_DELAY }: EnqueueOpts = {},
+    { delayInSeconds = UNDO_DELAY_IN_SECONDS }: EnqueueOpts = {},
   ) => {
+    const id = uniqueId();
+
     const timeoutId = setTimeout(() => {
-      this.execute(timeoutId);
+      this.execute(id);
     }, delayInSeconds * 1000);
     const item: IQueueItem = {
       fn,
       timeoutId, // unique value
+      id,
     };
     this.queue.push(item);
 
-    return timeoutId;
+    return id;
   };
 
-  dequeueLast = () => {
-    this.queue.pop();
-  };
+  dequeueLast = () => this.queue.pop();
 
-  private execute = async (id: NodeJS.Timeout) => {
-    const idx = this.queue.findIndex(({ timeoutId }) => id === timeoutId);
+  private execute = async (id: IQueueItem['id']) => {
+    // find specific idx
+    const idx = this.queue.findIndex(({ id: queuedId }) => queuedId === id);
     if (idx !== -1) {
       // remove item from queue
       const [item] = this.queue.splice(idx, 1);
+      // execute predefined function
       await item.fn();
     }
   };
 
-  abort = (id: IQueueItem['timeoutId']) => {
-    const idx = this.queue.findIndex(({ timeoutId }) => timeoutId === id);
+  abort = (id: IQueueItem['id']) => {
+    const idx = this.queue.findIndex(({ id: queuedId }) => queuedId === id);
     if (idx !== -1) {
       const [item] = this.queue.splice(idx, 1);
       clearTimeout(item.timeoutId);

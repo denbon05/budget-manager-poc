@@ -6,3 +6,4 @@ export * from './endpoints';
 export * from './expenses';
 export * from './storage';
 export * from './earnings';
+export * from './config';

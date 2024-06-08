@@ -26,6 +26,7 @@ export default {
     manage: 'Manage',
     tune: 'Tune',
     remove: 'Remove',
+    undo: 'Undo',
     // on: 'On',
     // off: 'Off',
     // recurring: {
@@ -33,6 +34,10 @@ export default {
     //   on: '@:actions.recurring.title @:actions.on',
     //   off: '@:actions.recurring.title @:actions.off',
     // },
+  },
+
+  notifications: {
+    deleted: '{item} deleted',
   },
 
   errors: {
