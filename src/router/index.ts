@@ -21,4 +21,13 @@ const router = createRouter({
   ],
 });
 
+router.beforeEach((to) => {
+  if (to.path.startsWith('/api')) {
+    // api call - no need to handle further
+    return false;
+  }
+
+  return true;
+});
+
 export default router;

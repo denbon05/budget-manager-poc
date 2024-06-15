@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
           enabled: !isProduction,
           /* when using generateSW the PWA plugin will switch to classic */
           type: 'module',
-          navigateFallback: 'index.html',
+          // navigateFallback: 'index.html',
           suppressWarnings: false,
         },
         includeAssets: ['favicon.png'],

@@ -12,7 +12,7 @@ const light: ThemeDefinition = {
     background: '#FFF',
     primary: '#00AE31', // green
     'primary-darken-1': '#096200',
-    secondary: '#7204E0', // purple
+    secondary: '#212121', // grey-darken-4
     'secondary-darken-1': '#4a078c',
     surface: '#FFFFFF',
     error: '#B00020',

@@ -1,5 +1,4 @@
 import { fileURLToPath } from 'node:url';
-import type { UserConfig } from 'vitest/config';
 import { configDefaults, defineConfig, mergeConfig } from 'vitest/config';
 import viteConfig from './vite.config';
 
@@ -16,5 +15,5 @@ export default defineConfig((configEnv) =>
         },
       },
     },
-  } as UserConfig),
+  }),
 );

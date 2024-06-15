@@ -9,7 +9,9 @@ const { isSideBarVisible, toggleSideBar } = useClientState();
 const route = useRoute();
 
 const appBarIcon = computed(() =>
-  route.name === RouteNames.Home ? 'mdi-account-cog' : 'mdi-home',
+  route.name === RouteNames.Home
+    ? 'mdi-account-cog'
+    : 'mdi-minus-circle-multiple',
 );
 const routerLinkName = computed(() =>
   route.name === RouteNames.Home ? RouteNames.Profile : RouteNames.Home,

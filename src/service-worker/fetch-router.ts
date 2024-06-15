@@ -34,23 +34,24 @@ const mapToURIController = (event: FetchEvent) => {
   const { method } = event.request;
   const controllerKey = prependHTTPMethod(method as Method, url.pathname);
   const shouldURIBeIntercepted =
-    url.pathname.startsWith('/api') && !controllerByURI.has(controllerKey);
+    url.pathname.startsWith('/api-proxied') &&
+    !controllerByURI.has(controllerKey);
 
   if (shouldURIBeIntercepted && !import.meta.env.PROD) {
     // show non-intercepted routes while developing
     console.warn(
-      `URI doesn't intercepted in SW:\nURI "${url.pathname}"\nMethod "${method}"`,
+      `URI doesn't intercepted in SW: "${method}" "${url.pathname}"`,
     );
   }
 
   if (!controllerByURI.has(controllerKey)) {
-    // skip unhandled requests
+    // Let the network handle these requests
     return;
   }
 
-  const uriController = controllerByURI.get(controllerKey);
+  const handleInterceptedEndpoint = controllerByURI.get(controllerKey);
   event.respondWith(
-    uriController!(event).catch((err) => {
+    handleInterceptedEndpoint!(event).catch((err) => {
       console.error('WS endpoint controller error', err);
       return new Response(err.message, {
         headers: { 'Content-Type': 'application/json' },

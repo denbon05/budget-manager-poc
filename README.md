@@ -23,7 +23,8 @@ bun install
 ### Compile and Hot-Reload for Development
 
 ```sh
-bun dev
+bun run watch:server # run Vercel serverless locally
+bun dev # run frontend app
 ```
 
 ### Type-Check, Compile and Minify for Production
@@ -63,3 +64,7 @@ bun test:e2e --debug
 bun lint # fix with eslint
 bun format # format with prettier
 ```
+
+### Dev TODO
+
+1. <a href="https://github.com/oven-sh/bun/issues/7589" target="_blank">Use bun parallel when implemented</a>

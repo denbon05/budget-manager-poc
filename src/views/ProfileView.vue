@@ -5,6 +5,7 @@
 // compact mode: add and manage btns become icons
 // on/off search
 // install PWA https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable#triggering_the_install_prompt
+// tax percent?
 </script>
 
 <template>

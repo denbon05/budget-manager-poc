@@ -1,9 +1,9 @@
 import { expensesEndpoint } from '@/constants/endpoints';
 import type { ExpenseAltered, IExpense } from '@/types';
-import { axios } from './init';
+import { apiProxied } from './init';
 
 export const addExpense = async (expense: IExpense) => {
-  const { data } = await axios.post<Required<Pick<IExpense, 'id'>>>(
+  const { data } = await apiProxied.post<Required<Pick<IExpense, 'id'>>>(
     expensesEndpoint,
     expense,
   );
@@ -13,15 +13,15 @@ export const addExpense = async (expense: IExpense) => {
 
 export const updateExpense = async (expense: ExpenseAltered) => {
   console.log({ expense });
-  await axios.patch(expensesEndpoint, expense);
+  await apiProxied.patch(expensesEndpoint, expense);
   // TODO handle error statuses
 };
 
 export const fetchExpenses = async (): Promise<Required<IExpense[]>> => {
-  const { data } = await axios.get<Required<IExpense[]>>(expensesEndpoint);
+  const { data } = await apiProxied.get<Required<IExpense[]>>(expensesEndpoint);
   return data;
 };
 
 export const deleteExpense = async (parm: Pick<IExpense, 'id'>) => {
-  await axios.delete(expensesEndpoint, { data: parm });
+  await apiProxied.delete(expensesEndpoint, { data: parm });
 };
