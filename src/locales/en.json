@@ -1,12 +1,18 @@
 {
-  "profile": {
-    "title": "Profile",
-    "preferences": {
-      "title": "Preferences"
-    }
+  "page": {
+    "home": "Home",
+    "profile": "Profile"
   },
-  "home": {
-    "title": "Home"
+  "account": {
+    "name": "Account"
+  },
+  "preferences": {
+    "name": "Preferences",
+    "theme": {
+      "name": "Theme",
+      "light": "Light Theme",
+      "dark": "Dark Theme"
+    }
   },
   "expense": {
     "cta": "Start planning your budget by adding your expenses",
@@ -24,11 +30,19 @@
     "add": "Add @.lower:earnings.income",
     "income": "Income"
   },
+  "state": {
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
   "actions": {
     "manage": "Manage",
     "tune": "Tune",
     "remove": "Remove",
-    "undo": "Undo"
+    "undo": "Undo",
+    "auth": {
+      "loginOrCreateAccount": "LogIn or create account",
+      "loginWithGoogle": "LogIn with Google"
+    }
   },
   "notifications": {
     "deleted": "{item} deleted"

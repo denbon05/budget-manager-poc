@@ -1,10 +1,14 @@
+import type { LocalStorageKeys } from '@/types/storage';
+import { isEmpty } from 'lodash';
+
 class ClientStorage {
-  getItem = (key: string) => JSON.parse(localStorage.getItem(key) || '{}');
+  getItem = (key: LocalStorageKeys): string =>
+    JSON.parse(localStorage.getItem(key) || '{}');
 
   setItem = (key: string, value: unknown) =>
     localStorage.setItem(key, JSON.stringify(value));
 
-  hasItem = (key: string) => Boolean(this.getItem(key));
+  hasItem = (key: LocalStorageKeys): boolean => !isEmpty(this.getItem(key));
 
   removeItem = localStorage.removeItem;
 

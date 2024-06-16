@@ -15,14 +15,12 @@ import DelayedQueue from '@/entities/DelayedQueue';
 import type { ExpenseAltered, IExpense } from '@/types';
 import type { SnackNotificationOpts } from '@/types/notifications';
 import { retry } from '@lifeomic/attempt';
-import axios from 'axios';
 import { debounce } from 'lodash';
 import { computed, inject, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDisplay } from 'vuetify';
 import { VDataTableVirtual } from 'vuetify/components';
 import NumInputDialog from './NumInputDialog.vue';
-import { login } from '@/api/auth';
 
 const { t } = useI18n();
 const { xs, smAndUp } = useDisplay();
@@ -342,6 +340,7 @@ onUnmounted(() => {
   min-width: fit-content;
 }
 
+// remove arrows from inputs of type number
 :deep(input::-webkit-outer-spin-button),
 :deep(input::-webkit-inner-spin-button) {
   -webkit-appearance: none;

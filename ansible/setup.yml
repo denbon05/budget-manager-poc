@@ -2,17 +2,36 @@
 - name: Prepare environment
   hosts: local
   gather_facts: true
+  become: true
+
+  pre_tasks:
+    - ansible.builtin.debug:
+        var: ansible_env
 
   roles:
     - role: geerlingguy.java
+    - role: geerlingguy.docker
 
   tasks:
     - name: Ensure Android SDK global variables are placed in .zshrc
       ansible.builtin.blockinfile:
-        path: '{{ ansible_env.HOME }}/.zshrc'
+        path: '/home/{{ ansible_env.SUDO_USER }}/.zshrc'
         block: |
           export ANDROID_SDK_ROOT=$HOME/Android/Sdk
           export ANDROID_HOME=$HOME/Android/Sdk
+
+    - name: Ensure act repo is exist
+      ansible.builtin.git:
+        repo: https://github.com/nektos/act.git
+        dest: /tmp/act
+        single_branch: true
+        update: true
+
+    - name: Install act
+      become: true
+      community.general.make:
+        chdir: /tmp/act
+        target: install
 
   handlers:
     - name: Source .zshrc

@@ -7,6 +7,13 @@ pre-setup:
 setup: pre-setup
 	(cd ansible && ansible-playbook setup.yml)
 
+# **WEB dev**
+server:
+	bun run watch:server
+
+client:
+	bun dev
+
 # **CLI capacitor per device**
 # Android
 cap-add-android:

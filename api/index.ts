@@ -1,4 +1,4 @@
-// IN ORDER TO MAKE VITE WORK ON VERCEL, EVERYTHING SHOULD BE PLACED IN ONE FILE
+// IN ORDER TO MAKE VITE WORK ON VERCEL WITH NODE SERVERLESS RUNTIME, EVERYTHING SHOULD BE PLACED IN ONE FILE
 // - import doesn't work only require with local modules
 // 1. https://stackoverflow.com/a/73887330/15032782
 // 2. https://github.com/orgs/vercel/discussions/1007#discussioncomment-5420164
@@ -42,6 +42,7 @@ const getServer = () => {
     logger: IS_PROD
       ? true
       : {
+          // use 'pino-pretty' only during development
           transport: {
             target: 'pino-pretty',
             options: {

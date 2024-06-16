@@ -65,6 +65,19 @@ bun lint # fix with eslint
 bun format # format with prettier
 ```
 
+### CI and CD
+
+#### Local development - GtiHub Actions
+
+<a href="https://github.com/nektos/act" target="_blank">act</a> fires local docker container in order
+to run actions locally.
+
+```sh
+act -l # List all actions for all events
+act -j run-checks # run job by name
+act --help # for more commands
+```
+
 ### Dev TODO
 
 1. <a href="https://github.com/oven-sh/bun/issues/7589" target="_blank">Use bun parallel when implemented</a>
