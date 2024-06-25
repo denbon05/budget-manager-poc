@@ -8,5 +8,5 @@ export const apiProxied = Axios.create({
 export const api = Axios.create({
   baseURL: import.meta.env.PROD
     ? `/api/${API_VERSION}`
-    : `${import.meta.url}:${LOCAL_SERVER_PORT}/api/${API_VERSION}`,
+    : `http://${new URL(import.meta.url).hostname}:${LOCAL_SERVER_PORT}/api/${API_VERSION}`,
 });

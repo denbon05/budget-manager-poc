@@ -1,18 +1,25 @@
-import type { LocalStorageKeys } from '@/types/storage';
-import { isEmpty } from 'lodash';
+import type { LocalStorageKeys, StoredValues } from '@/types/storage';
+import { isEmpty, isNull } from 'lodash';
 
 class ClientStorage {
-  getItem = (key: LocalStorageKeys): string =>
-    JSON.parse(localStorage.getItem(key) || '{}');
+  getItem = (key: LocalStorageKeys) => {
+    const storedValue = localStorage.getItem(key);
+    if (isNull(storedValue)) {
+      return storedValue;
+    }
 
-  setItem = (key: string, value: unknown) =>
+    const parsedValue = JSON.parse(storedValue);
+    return isEmpty(parsedValue) ? null : parsedValue;
+  };
+
+  setItem = <K extends LocalStorageKeys>(key: K, value: StoredValues[K]) =>
     localStorage.setItem(key, JSON.stringify(value));
 
   hasItem = (key: LocalStorageKeys): boolean => !isEmpty(this.getItem(key));
 
-  removeItem = localStorage.removeItem;
+  removeItem = (key: LocalStorageKeys) => localStorage.removeItem(key);
 
-  clear = localStorage.clear();
+  clear = localStorage.clear;
 }
 
 /** Instance designed to help simplify client storage usage */

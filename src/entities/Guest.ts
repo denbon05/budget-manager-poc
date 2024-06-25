@@ -1,7 +1,7 @@
-import type { IPerson } from '@/types/account';
+import { Person } from '@/types/account';
 
-class Guest implements IPerson {
-  isGuest = true;
+class Guest extends Person {
+  readonly isGuest = true;
 }
 
 export default Guest;

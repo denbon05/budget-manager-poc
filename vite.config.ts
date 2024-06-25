@@ -95,6 +95,10 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       port: 3000,
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      },
     },
   };
 });

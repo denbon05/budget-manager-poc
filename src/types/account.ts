@@ -1,3 +1,5 @@
-export interface IPerson {
-  isGuest: boolean;
+export abstract class Person {
+  abstract readonly isGuest: boolean;
+
+  logOut = () => {};
 }

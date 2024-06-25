@@ -34,3 +34,7 @@ playwright-report/
 android
 .vercel
 dev-dist
+google-oauth2.keys.json
+.vault-password
+*.local.*
+*.dev.*

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { useUser } from '@/composables/useUser';
+import { user } from '@/composables/useUser';
 import AuthMethods from './AuthMethods.vue';
 import AccountManageable from './AccountManageable.vue';
 
-const user = useUser();
 // TODO if user not authorized show auth methods
 // else show user info: email, logout btn
 </script>

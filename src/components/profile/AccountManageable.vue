@@ -1,5 +1,7 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { initGDriveAppFolder } from '@/api/google-drive';
+</script>
 
 <template>
-  <v-list-item>TODO</v-list-item>
+  <v-btn @click="initGDriveAppFolder">TEST Drive</v-btn>
 </template>

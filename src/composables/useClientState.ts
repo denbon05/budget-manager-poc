@@ -1,12 +1,9 @@
 import ClientStorage from '@/entities/ClientStorage';
-import { LocalStorageKeys } from '@/types/storage';
 import { ref, watch } from 'vue';
 import { useDisplay } from 'vuetify';
 
 const isSideBarVisible = ref(false); // side bar is closed by default
-const isDarkThemeEnabled = ref(
-  ClientStorage.hasItem(LocalStorageKeys.IS_DARK_THEME_ENABLED),
-);
+const isDarkThemeEnabled = ref(ClientStorage.hasItem('isDarkThemeEnabled'));
 
 export const useClientState = () => {
   const { lgAndUp } = useDisplay();
@@ -20,14 +17,11 @@ export const useClientState = () => {
   return {
     toggleSideBar: (isOpened: boolean) => {
       isSideBarVisible.value = isOpened;
-      ClientStorage.setItem(LocalStorageKeys.SIDE_BAR_VISIBILITY, isOpened); // remember user's choice
+      ClientStorage.setItem('isSideBarVisible', isOpened); // remember user's choice
     },
     toggleAppTheme: () => {
       isDarkThemeEnabled.value = !isDarkThemeEnabled.value;
-      ClientStorage.setItem(
-        LocalStorageKeys.IS_DARK_THEME_ENABLED,
-        isDarkThemeEnabled.value,
-      );
+      ClientStorage.setItem('isDarkThemeEnabled', isDarkThemeEnabled.value);
     },
 
     isSideBarVisible,

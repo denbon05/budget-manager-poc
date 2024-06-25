@@ -1,6 +1,6 @@
 import { api } from './init';
 
-export const login = async () => {
-  const res = await api.post('login');
-  console.log('login res', res);
+export const loginWithGoogleAccount = async () => {
+  // console.log('api', api.getUri());
+  await api.post('/google/login');
 };

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import NavBar from '@/components/nav-bar/NavBar.vue';
 import SideBar from '@/components/side-bar/SideBar.vue';
-import { onUnmounted, provide, reactive, ref } from 'vue';
+import { onBeforeUnmount, provide, reactive, ref } from 'vue';
 import SnackNotification from './components/common/SnackNotification.vue';
 import DelayedQueue from './entities/DelayedQueue';
 import type { SnackNotificationOpts } from './types/notifications';
+import { useUser } from './composables/useUser';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const user = useUser();
 
 const isSnackBarVisible = ref(false);
 const snackNotificationOpts = reactive<SnackNotificationOpts>({
@@ -19,7 +23,7 @@ provide<(opts: SnackNotificationOpts) => void>('showSnackbar', (opts) => {
   isSnackBarVisible.value = true;
 });
 
-onUnmounted(async () => {
+onBeforeUnmount(async () => {
   // execute all delayed functions
   await DelayedQueue.executeAllNow();
 });
