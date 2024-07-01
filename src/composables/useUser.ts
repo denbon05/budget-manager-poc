@@ -38,12 +38,8 @@ export const useUser = () => {
   const googleStored = ClientStorage.getItem('google');
 
   if (googleStored) {
-    const hasTokenExpired = moment().isAfter(
-      Number((googleStored as GoogleOAuthRedirectQuery).expiry_date),
-    );
-    console.log('hasTokenExpired', hasTokenExpired);
-    // guest in case access token is expired
-    Object.assign(user, hasTokenExpired ? new Guest() : new User(user));
+    // attempt to use authenticated user
+    Object.assign(user, new User(user));
   } else {
     // guest in any other case
     Object.assign(user, new Guest());

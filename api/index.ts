@@ -3,17 +3,24 @@
 // 1. https://stackoverflow.com/a/73887330/15032782
 // 2. https://github.com/orgs/vercel/discussions/1007#discussioncomment-5420164
 import cors from '@fastify/cors';
-import Fastify, { FastifyInstance, FastifyReply } from 'fastify';
+import cookie from '@fastify/cookie';
+import { CloudantV1 } from '@ibm-cloud/cloudant';
+import Fastify, { FastifyInstance } from 'fastify';
 import { readFileSync } from 'fs';
-import { Credentials, OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from 'google-auth-library';
+import http from 'http';
+import { IamAuthenticator } from 'ibm-cloud-sdk-core';
 import open from 'open';
 import { join } from 'path';
+import destroyer from 'server-destroy';
+import { google } from 'googleapis';
 
 // constants - can't be imported outside the api directory
 const CONFIG_DIRPATH = join(__dirname, 'config');
 const SERVER_PORT = Number(process.env.PORT || 3005);
 const API_VERSION = process.env.API_VERSION || 'v1';
 const IS_PROD = process.env.NODE_ENV === 'production';
+const CLOUDANT_USERS_DB_NAME = 'users';
 
 const appConfig = (() => {
   if (IS_PROD) {
@@ -39,7 +46,8 @@ const appConfig = (() => {
 
 // plugins
 const registerPlugins = (app: FastifyInstance) => {
-  app.register(cors);
+  app.register(cors, { origin: true, credentials: true });
+  app.register(cookie, { secret: 'super-duper-secret-hash-value' });
 };
 
 // hooks
@@ -49,6 +57,16 @@ const addHooks = (app: FastifyInstance) => {
     routeOpts.url = join('/api', `${API_VERSION}`, routeOpts.url);
   });
 };
+
+// storages
+const cloudant = CloudantV1.newInstance({
+  disableSslVerification: !IS_PROD,
+  authenticator: new IamAuthenticator({
+    disableSslVerification: !IS_PROD,
+    apikey: appConfig.cloudant.apikey,
+  }),
+  serviceUrl: appConfig.cloudant.url,
+});
 
 // controllers
 const useAuthEndpoints = (app: FastifyInstance) => {
@@ -64,53 +82,51 @@ const useAuthEndpoints = (app: FastifyInstance) => {
 
 // create an oAuth client to authorize the API call.  Secrets are kept in a `keys.json` file,
 // which should be downloaded from the Google Developers Console.
-const oAuth2Client = new OAuth2Client({
+// const oAuth2Client = new OAuth2Client({
+//   clientId: appConfig.google.web.client_id,
+//   clientSecret: appConfig.google.web.client_secret,
+//   redirectUri: appConfig.google.web.redirect_uris[0],
+// });
+
+const oAuth2Client = new google.auth.OAuth2({
   clientId: appConfig.google.web.client_id,
   clientSecret: appConfig.google.web.client_secret,
   redirectUri: appConfig.google.web.redirect_uris[0],
 });
 
-export interface IClient {
-  response: FastifyReply;
-  googleCredentials?: Credentials;
-}
+// Generate the url that will be used for the consent dialog.
+const authorizeUrl = oAuth2Client.generateAuthUrl({
+  access_type: 'offline',
+  prompt: 'consent',
+  // include_granted_scopes: true,
+  scope: [
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/userinfo.email',
+  ],
+});
 
 const useGoogleAuthEndpoints = (app: FastifyInstance) => {
   app
     .post('/google/login', async (req, reply) => {
       app.log.info('GOOGLE AUTH');
-      // Generate the url that will be used for the consent dialog.
-      const authorizeUrl = oAuth2Client.generateAuthUrl({
-        access_type: 'offline',
-        prompt: 'consent',
-        scope: 'https://www.googleapis.com/auth/drive',
-      });
 
-      const cp = await open(authorizeUrl, { wait: false });
-      cp.unref();
-      reply.send('OK');
+      // const cp = await open(authorizeUrl, { wait: true });
+      // app.log.info(`cp: ${JSON.stringify(cp, null, 2)}`);
+      // cp.unref();
+      reply.status(301);
+      reply.redirect(authorizeUrl);
     })
     .get<{ Querystring: { code: string; scope: string } }>(
       '/google/oauth2callback',
       async (req, reply) => {
+        app.log.info(`QUERY: ${JSON.stringify(req.query, null, 2)}`);
         // Now that we have the code, use that to acquire tokens.
         const tokenResponse = await oAuth2Client.getToken(req.query.code);
         oAuth2Client.setCredentials(tokenResponse.tokens);
         app.log.info(
           `Tokens acquired ${JSON.stringify(tokenResponse, null, 2)}`,
         );
-        app.log.info(
-          `oAuth2Client.credentials ${JSON.stringify(oAuth2Client.credentials, null, 2)}`,
-        );
 
-        if (oAuth2Client.credentials.access_token) {
-          const tokenInfo = await oAuth2Client.getTokenInfo(
-            oAuth2Client.credentials.access_token,
-          );
-          app.log.info(`tokenInfo ${JSON.stringify(tokenInfo, null, 2)}`);
-        }
-
-        app.log.info(`headers ${JSON.stringify(req.headers, null, 2)}`);
         const redirectURL = new URL(
           IS_PROD
             ? `${req.protocol}://${req.ip}/profile`
@@ -129,37 +145,58 @@ const useGoogleAuthEndpoints = (app: FastifyInstance) => {
           'token_type',
           String(oAuth2Client.credentials.token_type),
         );
+
+        const ticket = await oAuth2Client.verifyIdToken({
+          idToken: oAuth2Client.credentials.id_token!,
+          audience: appConfig.google.web.client_id,
+        });
+        const payload = ticket.getPayload();
+        app.log.info(`payload: ${JSON.stringify(payload)}`);
+        // ? HOW TO VERIFY/CONFIRM THE USER LATER WHEN REFRESH TOKEN?
+        // await cloudant.postDocument({
+        //   db: CLOUDANT_USERS_DB_NAME,
+        //   document: {
+        //     email: payload?.email,
+        //     refresh_token: oAuth2Client.credentials.refresh_token,
+        //   },
+        // });
         reply.redirect(redirectURL.toString());
       },
+    )
+    // TODO refresh google token
+    .post<{ Body: { accessToken: string } }>(
+      '/google/exchange-token',
+      async (req, reply) => {
+        const { accessToken } = req.body;
+
+        try {
+          const ticket = await oAuth2Client.verifyIdToken({
+            idToken: accessToken, // ! probably wrong type
+            audience: appConfig.google.web.client_id,
+          });
+          const payload = ticket.getPayload();
+
+          if (!payload) {
+            reply.status(404).send('The user is not found');
+            return;
+          }
+
+          app.log.info(`payload: ${JSON.stringify(payload)}`);
+          const userEmail = payload['email'];
+          app.log.info(`userEmail: ${userEmail}`);
+
+          const { tokens } = await oAuth2Client.getToken({
+            code: accessToken,
+            redirect_uri: appConfig.google.web.redirect_uris[0],
+          });
+          app.log.info(`tokens: ${tokens}`);
+
+          reply.send(tokens); // TODO send only access token
+        } catch (error) {
+          reply.status(400).send({ error: 'Invalid ID token' });
+        }
+      },
     );
-  // TODO refresh google token - cron job?
-  // .post<{ Body: { idToken: string } }>(
-  //   '/google/exchange-token',
-  //   async (req, res) => {
-  //     const { idToken } = req.body;
-
-  //     try {
-  //       const ticket = await oAuth2Client.verifyIdToken({
-  //         idToken,
-  //         audience: keys.web.client_id,
-  //       });
-  //       const payload = ticket.getPayload();
-  //       app.log.info(`payload: ${JSON.stringify(payload)}`);
-  //       const userid = payload['sub'];
-  //       app.log.info(`userid: ${userid}`);
-
-  //       const { tokens } = await oAuth2Client.getToken({
-  //         code: idToken,
-  //         redirect_uri: keys.web.redirect_uris[0],
-  //       });
-  //       app.log.info(`tokens: ${tokens}`);
-
-  //       res.send(tokens);
-  //     } catch (error) {
-  //       res.status(400).send({ error: 'Invalid ID token' });
-  //     }
-  //   },
-  // );
 };
 
 const useControllers = (app: FastifyInstance) => {

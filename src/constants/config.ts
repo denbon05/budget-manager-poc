@@ -1,2 +1,5 @@
 export const UNDO_DELAY_IN_SECONDS = 5;
 export const DEBOUNCE_MS = 400;
+export const ENDPOINT_HANDLER_MAX_ATTEMPTS = 5;
+export const ENDPOINT_HANDLER_DELAY_MS = 200;
+export const ENDPOINT_HANDLER_FACTOR = 3;

@@ -1,6 +1,7 @@
 import { Person } from '@/types/account';
-import Guest from './Guest';
+import { verifyUser } from '@/utils';
 import ClientStorage from './ClientStorage';
+import Guest from './Guest';
 
 class User extends Person {
   private userRef: Person;
@@ -10,6 +11,7 @@ class User extends Person {
   constructor(userRef: Person) {
     super();
     this.userRef = userRef;
+    verifyUser(this.logOut);
   }
 
   logOut = () => {

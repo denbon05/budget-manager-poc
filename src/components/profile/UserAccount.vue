@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { user } from '@/composables/useUser';
-import AuthMethods from './AuthMethods.vue';
+import type { VListGroup } from 'vuetify/components';
 import AccountManageable from './AccountManageable.vue';
+import AuthMethods from './AuthMethods.vue';
 
 // TODO if user not authorized show auth methods
 // else show user info: email, logout btn

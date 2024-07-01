@@ -1,3 +1,4 @@
+import { api } from '@/api/init';
 import type { Method } from 'axios';
 
 /** Helper function to read request body */
@@ -14,3 +15,8 @@ export const readRequestBody = async <T>(
 
 export const prependHTTPMethod = (method: Method, endpoint: string) =>
   `${method.toLowerCase()}${endpoint}`;
+
+export const refreshGToken = async () => {
+  // TODO
+  await api.get('/google/refresh-token');
+};

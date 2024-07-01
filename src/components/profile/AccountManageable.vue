@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { initGDriveAppFolder } from '@/api/google-drive';
+import { refreshGoogleToken } from '@/api/auth';
+// import { initGDriveAppFolder } from '@/api/google-drive';
 </script>
 
 <template>
-  <v-btn @click="initGDriveAppFolder">TEST Drive</v-btn>
+  <v-btn @click="refreshGoogleToken">TEST</v-btn>
 </template>
